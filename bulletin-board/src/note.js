@@ -14,24 +14,56 @@ class Note extends Component {
         this.save = this.save.bind(this)
         this.rederForm = this.renderForm.bind(this)
         this.renderDisplay = this.renderDisplay.bind(this)
+        this.randomBetween = this.randomBetween.bind(this)
+    }
+
+    componentWillMount(){
+        this.style = {
+            right : this.randomBetween(0, window.innerWidth - 150, 'px'),
+            top: this.randomBetween(0, window.innerHeight - 150, 'px'),
+            transform: `rotate(${this.randomBetween(-25, 25, 'deg')})`
+        }
+    }
+    randomBetween(x, y, s){
+        return x + Math.ceil(Math.random() * (y-x)) + s
+    }
+
+    componentDidUpdate(){
+        var textArea
+        if(this.state.editing){
+            textArea = this._newText
+            textArea.focus()
+            textArea.select()
+        }
+    }
+
+    shouldComponentUpdate(nextProps, nextState){
+        return (
+            this.props.children !== nextProps.children || this.state !== nextState
+        )
     }
     edit(){
         this.setState({
             editing: true
         })
     }
-    remove(){
-
+    remove(id){
+        this.props.onRemove(this.props.index)
     }
 
-    save(){
-        alert(this._newText.value);
+    save(e){
+        e.preventDefault();
+        this.props.onChange(this._newText.value, this.props.index)
+        this.setState({
+            editing: false
+        })
     }
     renderForm(){
         return (
-            <div className="note">
-                <form>
-                    <textarea ref={input => this._newText = input}/>
+            <div className="note" style={this.style}>
+                <form onSubmit={this.save}>
+                    <textarea ref={input => this._newText = input}
+                    defaultValue = {this.props.children}/>
                     <button onClick={this.save} id="save"><FaFloppyO/></button>
                 </form>
             </div>
@@ -39,8 +71,8 @@ class Note extends Component {
     }
     renderDisplay(){
         return (
-            <div className='note'>
-                <p>Learn React</p>
+            <div className='note' style={this.style}>
+                <p>{this.props.children} </p>
                 <span>
                     <button onClick={this.edit} id="edit"><FaPencil/></button>
                     <button onClick={this.remove} id="remove"><FaTrash/></button>
